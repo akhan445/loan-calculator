@@ -1,32 +1,71 @@
-from math import ceil
-def calculate_months(principal, monthly_payment):
-    num_months = ceil(principal / monthly_payment)
-    return num_months
-def calculate_monthly_payment(principal, months):
-    payments = {'monthly': ceil(principal / months)}
+from math import ceil, log
+import argparse
 
-    if principal % months != 0:
-        payments['last'] = principal - (months - 1) * payments['monthly']
 
-    return payments
+def nominal_interest_rate(interest_rate):
+    return interest_rate / (12 * 100)
 
-loan_principal = int(input('Enter the loan principal: '))
-calculation_type = input('''What do you want to calculate?
-type "m" - for number of monthly payments,
-type "p" - for monthly payment:
-''')
 
-if calculation_type == "m":
-    monthly_payment = int(input('Enter the monthly payment: '))
-    num_months = calculate_months(loan_principal, monthly_payment)
-    print(f'IT will take {num_months} month{"s" if num_months > 1 else ""} to repay the loan')
+def calculate_principal(annuity_payment, periods, interest):
+    i = nominal_interest_rate(interest)
+    loan_principal = annuity_payment / ((i * pow(1 + i, periods)) / (pow(1 + i, periods) - 1))
 
-elif calculation_type == "p":
-    months = int(input('Enter the number of months: '))
-    monthly_payments = calculate_monthly_payment(loan_principal, months)
+    return int(loan_principal)
 
-    result = f"Your monthly payment = {monthly_payments['monthly']}"
-    if 'last' in monthly_payments:
-        result += f' and the last payment = {monthly_payments["last"]}'
 
-    print(result)
+def calculate_annuity_payment(principal, periods, interest):
+    i = nominal_interest_rate(interest)
+    annuity_payment = principal * ((i * pow(1 + i, periods)) / (pow(1 + i, periods) - 1))
+
+    return ceil(annuity_payment)
+
+
+def calculate_num_periods(principal, payment, interest):
+    i = nominal_interest_rate(interest)
+
+    num_months = log((payment / (payment - i * principal)), 1 + i)
+
+    return ceil(num_months)
+
+
+def generate_message(years, months):
+    message = "It will take"
+
+    if years == 1:
+        message += " 1 year"
+    elif years > 1:
+        message += f' {years} years'
+
+    if months == 1:
+        message += ' 1 month'
+    elif months > 1:
+        message += f' {months} months'
+
+    message += ' to repay this loan!'
+    return message
+
+
+parser = argparse.ArgumentParser(
+    prog='LoanCalculator',
+    description='Personal Finance Loan Calculator',
+)
+
+parser.add_argument('--principal', type=float)
+parser.add_argument('--payment', type=float)
+parser.add_argument('--periods', type=float)
+parser.add_argument('--interest', type=float, required=True)
+
+args = parser.parse_args()
+result = None
+
+if args.principal is None:
+    result = calculate_principal(args.payment, args.periods, args.interest)
+    print(f'Your loan principal = {result}!')
+elif args.payment is None:
+    result = calculate_annuity_payment(args.principal, args.periods, args.interest)
+    print(f'Your monthly payment = {result}!')
+elif args.periods is None:
+    result = calculate_num_periods(args.principal, args.payment, args.interest)
+    years, months = divmod(result, 12)
+    message = generate_message(years, months)
+    print(message)
