@@ -42,7 +42,7 @@ The differentiated payment can be calculated by applying the following formula:
 ![Differentiated](docs/images/differentiated.png)
 ## How to run
 
-Code for the application can be found under [../task/creditcalc/creditcalc.py](task/creditcalc/creditcalc.py)
+Code for the application can be found [here](<Loan Calculator/task/creditcalc/creditcalc.py>).
 
 The application uses the `argparse` module to handle parameters.
 
